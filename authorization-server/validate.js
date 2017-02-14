@@ -103,7 +103,10 @@ validate.token = (token, accessToken) => {
   }
   // token is a client token
   return db.clients.find(token.clientID)
-    .then(client => validate.clientExists(client))
+    .then((client) => {
+      console.log(client);
+      return  validate.clientExists(client);
+    })
     .then(client => client);
 };
 

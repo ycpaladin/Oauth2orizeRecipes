@@ -12,17 +12,17 @@ const User = require('../models/User');
  * password : The password of your user
  * name     : The name of your user
  */
-const users = [{
-  id: '1',
-  username: 'bob',
-  password: 'secret',
-  name: 'Bob Smith',
-}, {
-  id: '2',
-  username: 'joe',
-  password: 'password',
-  name: 'Joe Davis',
-}];
+// const users = [{
+//   id: '1',
+//   username: 'bob',
+//   password: 'secret',
+//   name: 'Bob Smith',
+// }, {
+//   id: '2',
+//   username: 'joe',
+//   password: 'password',
+//   name: 'Joe Davis',
+// }];
 
 /**
  * Returns a user if it finds one, otherwise returns null if a user is not found.

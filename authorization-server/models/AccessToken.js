@@ -1,6 +1,5 @@
 'use strict';
-const bcrypt = require('bcrypt-nodejs');
-const crypto = require('crypto');
+
 const mongoose = require('mongoose');
 
 const accesTokenSchema = new mongoose.Schema({
@@ -8,8 +7,9 @@ const accesTokenSchema = new mongoose.Schema({
     userID: String,
     expirationDate: Date,
     clientID: String,
-    scope: Array
+    scope: Array,
 });
 
 
-module.exports = mongoose.model('AccessToken', accesTokenSchema)
+module.exports = mongoose.model('AccessToken', accesTokenSchema);
+

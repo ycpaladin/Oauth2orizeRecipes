@@ -42,7 +42,7 @@ app.use(session({
   secret: config.session.secret,
   store: new MongoStore({
     url: 'mongodb://localhost:27017/oauthdb',
-    autoReconnect: true
+    autoReconnect: true,
   }),
   key: 'authorization.sid',
   cookie: { maxAge: config.session.maxAge },

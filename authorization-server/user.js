@@ -34,16 +34,16 @@ exports.info = [
 
 
 exports.register = (req, res) => {
-  console.log('register....')
+  console.log('register....');
   // User
-  const {username, password, name} = req.body;
+  const { username, password, name } = req.body;
   const user = new User({
     username,
     password,
-    name
+    name,
   });
-  user.save(error => {
+  user.save((error) => {
     if (error) return res.send(error);
-    res.json({ message: 'Register sucess..!' })
-  })
-}
+    res.json({ message: 'Register sucess..!' });
+  });
+};
