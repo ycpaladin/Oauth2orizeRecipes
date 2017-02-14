@@ -1,5 +1,7 @@
 'use strict';
 
+const User = require('../models/User');
+
 /**
  * This is the configuration of the users that are allowed to connected to your authorization
  * server. These represent users of different client applications that can connect to the
@@ -11,15 +13,15 @@
  * name     : The name of your user
  */
 const users = [{
-  id       : '1',
-  username : 'bob',
-  password : 'secret',
-  name     : 'Bob Smith',
+  id: '1',
+  username: 'bob',
+  password: 'secret',
+  name: 'Bob Smith',
 }, {
-  id       : '2',
-  username : 'joe',
-  password : 'password',
-  name     : 'Joe Davis',
+  id: '2',
+  username: 'joe',
+  password: 'password',
+  name: 'Joe Davis',
 }];
 
 /**
@@ -27,7 +29,7 @@ const users = [{
  * @param   {String}   id - The unique id of the user to find
  * @returns {Promise} resolved user if found, otherwise resolves undefined
  */
-exports.find = id => Promise.resolve(users.find(user => user.id === id));
+exports.find = id => User.findById(id).exec();
 
 /**
  * Returns a user if it finds one, otherwise returns null if a user is not found.
@@ -35,5 +37,4 @@ exports.find = id => Promise.resolve(users.find(user => user.id === id));
  * @param   {Function} done     - The user if found, otherwise returns undefined
  * @returns {Promise} resolved user if found, otherwise resolves undefined
  */
-exports.findByUsername = username =>
-  Promise.resolve(users.find(user => user.username === username));
+exports.findByUsername = (username) => User.findOne({ username }).exec()

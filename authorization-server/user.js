@@ -2,6 +2,8 @@
 
 const passport = require('passport');
 
+const User = require('./models/User');
+
 /**
  * Simple informational end point, if you want to get information
  * about a particular user.  You would call this with an access token
@@ -29,3 +31,19 @@ exports.info = [
     res.json({ user_id: req.user.id, name: req.user.name, scope: req.authInfo.scope });
   },
 ];
+
+
+exports.register = (req, res) => {
+  console.log('register....')
+  // User
+  const {username, password, name} = req.body;
+  const user = new User({
+    username,
+    password,
+    name
+  });
+  user.save(error => {
+    if (error) return res.send(error);
+    res.json({ message: 'Register sucess..!' })
+  })
+}

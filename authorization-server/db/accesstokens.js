@@ -1,6 +1,7 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
+const AccessToken = require('../models/AccessToken');
 
 // The access tokens.
 // You will use these to access your end point data through the means outlined
@@ -18,12 +19,15 @@ let tokens = Object.create(null);
  * @returns {Promise} resolved with the token if found, otherwise resolved with undefined
  */
 exports.find = (token) => {
-  try {
-    const id = jwt.decode(token).jti;
-    return Promise.resolve(tokens[id]);
-  } catch (error) {
-    return Promise.resolve(undefined);
-  }
+  // try {
+  //   const id = jwt.decode(token).jti;
+  //   return Promise.resolve(tokens[id]);
+  // } catch (error) {
+  //   return Promise.resolve(undefined);
+  // }
+  const id = jwt.decode(token).jti;
+  return AccessToken.find({ id }).exec().catch(error => Promise.resolve(undefined));
+
 };
 
 /**
@@ -39,8 +43,10 @@ exports.find = (token) => {
  */
 exports.save = (token, expirationDate, userID, clientID, scope) => {
   const id = jwt.decode(token).jti;
-  tokens[id] = { userID, expirationDate, clientID, scope };
-  return Promise.resolve(tokens[id]);
+  //tokens[id] = { userID, expirationDate, clientID, scope };
+  const accessToken = new AccessToken({ id, userID, expirationDate, clientID, scope });
+  // return Promise.resolve(tokens[id]);
+  return accessToken.save();
 };
 
 /**
@@ -49,14 +55,16 @@ exports.save = (token, expirationDate, userID, clientID, scope) => {
  * @returns {Promise} resolved with the deleted token
  */
 exports.delete = (token) => {
-  try {
-    const id = jwt.decode(token).jti;
-    const deletedToken = tokens[id];
-    delete tokens[id];
-    return Promise.resolve(deletedToken);
-  } catch (error) {
-    return Promise.resolve(undefined);
-  }
+  // try {
+  //   const id = jwt.decode(token).jti;
+  //   const deletedToken = tokens[id];
+  //   delete tokens[id];
+  //   return Promise.resolve(deletedToken);
+  // } catch (error) {
+  //   return Promise.resolve(undefined);
+  // }
+  const id = jwt.decode(token).jti;
+  return AccessToken.findOneAndRemove({ id }).exec().catch(error => Promise.resolve(undefined));
 };
 
 /**
@@ -65,16 +73,17 @@ exports.delete = (token) => {
  * @returns {Promise} resolved with an associative of tokens that were expired
  */
 exports.removeExpired = () => {
-  const keys    = Object.keys(tokens);
-  const expired = keys.reduce((accumulator, key) => {
-    if (new Date() > tokens[key].expirationDate) {
-      const expiredToken = tokens[key];
-      delete tokens[key];
-      accumulator[key] = expiredToken; // eslint-disable-line no-param-reassign
-    }
-    return accumulator;
-  }, Object.create(null));
-  return Promise.resolve(expired);
+  // const keys = Object.keys(tokens);
+  // const expired = keys.reduce((accumulator, key) => {
+  //   if (new Date() > tokens[key].expirationDate) {
+  //     const expiredToken = tokens[key];
+  //     delete tokens[key];
+  //     accumulator[key] = expiredToken; // eslint-disable-line no-param-reassign
+  //   }
+  //   return accumulator;
+  // }, Object.create(null));
+  // return Promise.resolve(expired);
+  return AccessToken.findByIdAndRemove('expirationDate', { '$lt': new Date() }).exec();
 };
 
 /**
@@ -82,7 +91,13 @@ exports.removeExpired = () => {
  * @returns {Promise} resolved with all removed tokens returned
  */
 exports.removeAll = () => {
-  const deletedTokens = tokens;
-  tokens              = Object.create(null);
-  return Promise.resolve(deletedTokens);
+  // const deletedTokens = tokens;
+  // tokens = Object.create(null);
+  // return Promise.resolve(deletedTokens);
+  return AccessToken.find().exec().then(tokens => {
+    AccessToken.collection.drop();
+    return tokens;
+  });
+
+
 };

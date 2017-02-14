@@ -1,24 +1,34 @@
 'use strict';
 
-const bodyParser     = require('body-parser');
-const client         = require('./client');
-const cookieParser   = require('cookie-parser');
-const config         = require('./config');
-const db             = require('./db');
-const express        = require('express');
-const expressSession = require('express-session');
-const fs             = require('fs');
-const https          = require('https');
-const oauth2         = require('./oauth2');
-const passport       = require('passport');
-const path           = require('path');
-const site           = require('./site');
-const token          = require('./token');
-const user           = require('./user');
+const bodyParser = require('body-parser');
+const client = require('./client');
+const cookieParser = require('cookie-parser');
+const config = require('./config');
+const db = require('./db');
+const express = require('express');
+const session = require('express-session');
+const fs = require('fs');
+const https = require('https');
+const oauth2 = require('./oauth2');
+const passport = require('passport');
+const path = require('path');
+const site = require('./site');
+const token = require('./token');
+const user = require('./user');
+const mongoose = require('mongoose');
+const connectMongo = require('connect-mongo');
 
-console.log('Using MemoryStore for the data store');
-console.log('Using MemoryStore for the Session');
-const MemoryStore = expressSession.MemoryStore;
+// console.log('Using MemoryStore for the data store');
+// console.log('Using MemoryStore for the Session');
+// const MemoryStore = expressSession.MemoryStore;
+mongoose.Promise = Promise;
+mongoose.connect('mongodb://localhost:27017/oauthdb');
+mongoose.connection.on('error', () => {
+  console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
+  process.exit();
+});
+
+const MongoStore = connectMongo(session);
 
 // Express configuration
 const app = express();
@@ -26,13 +36,16 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 
 // Session Configuration
-app.use(expressSession({
-  saveUninitialized : true,
-  resave            : true,
-  secret            : config.session.secret,
-  store             : new MemoryStore(),
-  key               : 'authorization.sid',
-  cookie            : { maxAge: config.session.maxAge },
+app.use(session({
+  saveUninitialized: true,
+  resave: true,
+  secret: config.session.secret,
+  store: new MongoStore({
+    url: 'mongodb://localhost:27017/oauthdb',
+    autoReconnect: true
+  }),
+  key: 'authorization.sid',
+  cookie: { maxAge: config.session.maxAge },
 }));
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,20 +54,21 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Passport configuration
-require('./auth');
+require('./passport');
 
-app.get('/',        site.index);
-app.get('/login',   site.loginForm);
-app.post('/login',  site.login);
-app.get('/logout',  site.logout);
+app.get('/', site.index);
+app.get('/login', site.loginForm);
+app.post('/login', site.login);
+app.get('/logout', site.logout);
 app.get('/account', site.account);
 
-app.get('/dialog/authorize',           oauth2.authorization);
+app.get('/dialog/authorize', oauth2.authorization);
 app.post('/dialog/authorize/decision', oauth2.decision);
-app.post('/oauth/token',               oauth2.token);
+app.post('/oauth/token', oauth2.token);
 
-app.get('/api/userinfo',   user.info);
+app.get('/api/userinfo', user.info);
 app.get('/api/clientinfo', client.info);
+app.post('/api/register', user.register);
 
 // Mimicking google's token info endpoint from
 // https://developers.google.com/accounts/docs/OAuth2UserAgent#validatetoken
@@ -89,7 +103,7 @@ app.use((err, req, res, next) => {
 // in the database
 setInterval(() => {
   db.accessTokens.removeExpired()
-  .catch(err => console.error('Error trying to remove expired tokens:', err.stack));
+    .catch(err => console.error('Error trying to remove expired tokens:', err.stack));
 }, config.db.timeToCheckExpiredTokens * 1000);
 
 // TODO: Change these for your own certificates.  This was generated through the commands:
@@ -97,8 +111,8 @@ setInterval(() => {
 // openssl req -new -key privatekey.pem -out certrequest.csr
 // openssl x509 -req -in certrequest.csr -signkey privatekey.pem -out certificate.pem
 const options = {
-  key  : fs.readFileSync(path.join(__dirname, 'certs/privatekey.pem')),
-  cert : fs.readFileSync(path.join(__dirname, 'certs/certificate.pem')),
+  key: fs.readFileSync(path.join(__dirname, 'certs/privatekey.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'certs/certificate.pem')),
 };
 
 // Create our HTTPS server listening on port 3000.

@@ -10,13 +10,17 @@
     "url": "https://github.com/FrankHassanabad/Oauth2orizeRecipes.git"
   },
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.9.x",
     "connect-ensure-login": "^0.1.x",
+    "connect-mongo": "^1.3.2",
     "cookie-parser": "^1.3.x",
+    "crypto": "0.0.3",
     "ejs": "^2.5.x",
     "express": "^4.10.x",
     "express-session": "^1.9.x",
     "jsonwebtoken": "^7.2.1",
+    "mongoose": "^4.8.2",
     "oauth2orize": "^1.0.x",
     "passport": "^0.3.x",
     "passport-http": "^0.3.x",
@@ -29,7 +33,7 @@
     "lint": "eslint *.js config db test",
     "start": "node app.js",
     "test": "mocha test test/db test/config",
-    "test:watch" : "npm run test -- --watch",
+    "test:watch": "npm run test -- --watch",
     "test:integration": "mocha test/integration"
   },
   "engines": {

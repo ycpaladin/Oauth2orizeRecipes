@@ -7,19 +7,19 @@
 // through a process of the user granting access, and the client exchanging
 // the grant for an access token.
 
-const config      = require('./config');
-const db          = require('./db');
-const login       = require('connect-ensure-login');
+const config = require('./config');
+const db = require('./db');
+const login = require('connect-ensure-login');
 const oauth2orize = require('oauth2orize');
-const passport    = require('passport');
-const utils       = require('./utils');
-const validate    = require('./validate');
+const passport = require('passport');
+const utils = require('./utils');
+const validate = require('./validate');
 
 // create OAuth 2.0 server
 const server = oauth2orize.createServer();
 
 // Configured expiresIn
-const expiresIn = { expires_in : config.token.expiresIn };
+const expiresIn = { expires_in: config.token.expiresIn };
 
 /**
  * Grant authorization codes
@@ -31,10 +31,10 @@ const expiresIn = { expires_in : config.token.expiresIn };
  * which is bound to these values, and will be exchanged for an access token.
  */
 server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
-  const code = utils.createToken({ sub : user.id, exp : config.codeToken.expiresIn });
+  const code = utils.createToken({ sub: user.id, exp: config.codeToken.expiresIn });
   db.authorizationCodes.save(code, client.id, redirectURI, user.id, client.scope)
-  .then(() => done(null, code))
-  .catch(err => done(err));
+    .then(() => done(null, code))
+    .catch(err => done(err));
 }));
 
 /**
@@ -46,12 +46,12 @@ server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
  * which is bound to these values.
  */
 server.grant(oauth2orize.grant.token((client, user, ares, done) => {
-  const token      = utils.createToken({ sub : user.id, exp : config.token.expiresIn });
+  const token = utils.createToken({ sub: user.id, exp: config.token.expiresIn });
   const expiration = config.token.calculateExpirationDate();
 
   db.accessTokens.save(token, expiration, user.id, client.id, client.scope)
-  .then(() => done(null, token, expiresIn))
-  .catch(err => done(err));
+    .then(() => done(null, token, expiresIn))
+    .catch(err => done(err));
 }));
 
 /**
@@ -64,18 +64,18 @@ server.grant(oauth2orize.grant.token((client, user, ares, done) => {
  */
 server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
   db.authorizationCodes.delete(code)
-  .then(authCode => validate.authCode(code, authCode, client, redirectURI))
-  .then(authCode => validate.generateTokens(authCode))
-  .then((tokens) => {
-    if (tokens.length === 1) {
-      return done(null, tokens[0], null, expiresIn);
-    }
-    if (tokens.length === 2) {
-      return done(null, tokens[0], tokens[1], expiresIn);
-    }
-    throw new Error('Error exchanging auth code for tokens');
-  })
-  .catch(() => done(null, false));
+    .then(authCode => validate.authCode(code, authCode, client, redirectURI))
+    .then(authCode => validate.generateTokens(authCode))
+    .then((tokens) => {
+      if (tokens.length === 1) {
+        return done(null, tokens[0], null, expiresIn);
+      }
+      if (tokens.length === 2) {
+        return done(null, tokens[0], tokens[1], expiresIn);
+      }
+      throw new Error('Error exchanging auth code for tokens');
+    })
+    .catch(() => done(null, false));
 }));
 
 /**
@@ -87,21 +87,21 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
  */
 server.exchange(oauth2orize.exchange.password((client, username, password, scope, done) => {
   db.users.findByUsername(username)
-  .then(user => validate.user(user, password))
-  .then(user => validate.generateTokens({ scope, userID: user.id, clientID: client.id }))
-  .then((tokens) => {
-    if (tokens === false) {
-      return done(null, false);
-    }
-    if (tokens.length === 1) {
-      return done(null, tokens[0], null, expiresIn);
-    }
-    if (tokens.length === 2) {
-      return done(null, tokens[0], tokens[1], expiresIn);
-    }
-    throw new Error('Error exchanging password for tokens');
-  })
-  .catch(() => done(null, false));
+    .then(user => validate.user(user, password))
+    .then(user => validate.generateTokens({ scope, userID: user.id, clientID: client.id }))
+    .then((tokens) => {
+      if (tokens === false) {
+        return done(null, false);
+      }
+      if (tokens.length === 1) {
+        return done(null, tokens[0], null, expiresIn);
+      }
+      if (tokens.length === 2) {
+        return done(null, tokens[0], tokens[1], expiresIn);
+      }
+      throw new Error('Error exchanging password for tokens');
+    })
+    .catch(() => done(null, false));
 }));
 
 /**
@@ -112,12 +112,12 @@ server.exchange(oauth2orize.exchange.password((client, username, password, scope
  * application issues an access token on behalf of the client who authorized the code.
  */
 server.exchange(oauth2orize.exchange.clientCredentials((client, scope, done) => {
-  const token      = utils.createToken({ sub : client.id, exp : config.token.expiresIn });
+  const token = utils.createToken({ sub: client.id, exp: config.token.expiresIn });
   const expiration = config.token.calculateExpirationDate();
   // Pass in a null for user id since there is no user when using this grant type
   db.accessTokens.save(token, expiration, null, client.id, scope)
-  .then(() => done(null, token, null, expiresIn))
-  .catch(err => done(err));
+    .then(() => done(null, token, null, expiresIn))
+    .catch(err => done(err));
 }));
 
 /**
@@ -129,10 +129,10 @@ server.exchange(oauth2orize.exchange.clientCredentials((client, scope, done) => 
  */
 server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, done) => {
   db.refreshTokens.find(refreshToken)
-  .then(foundRefreshToken => validate.refreshToken(foundRefreshToken, refreshToken, client))
-  .then(foundRefreshToken => validate.generateToken(foundRefreshToken))
-  .then(token => done(null, token, null, expiresIn))
-  .catch(() => done(null, false));
+    .then(foundRefreshToken => validate.refreshToken(foundRefreshToken, refreshToken, client))
+    .then(foundRefreshToken => validate.generateToken(foundRefreshToken))
+    .then(token => done(null, token, null, expiresIn))
+    .catch(() => done(null, false));
 }));
 
 /*
@@ -156,35 +156,35 @@ exports.authorization = [
   login.ensureLoggedIn(),
   server.authorization((clientID, redirectURI, scope, done) => {
     db.clients.findByClientId(clientID)
-    .then((client) => {
-      if (client) {
-        client.scope = scope; // eslint-disable-line no-param-reassign
-      }
-      // WARNING: For security purposes, it is highly advisable to check that
-      //          redirectURI provided by the client matches one registered with
-      //          the server.  For simplicity, this example does not.  You have
-      //          been warned.
-      return done(null, client, redirectURI);
-    })
-    .catch(err => done(err));
+      .then((client) => {
+        if (client) {
+          client.scope = scope; // eslint-disable-line no-param-reassign
+        }
+        // WARNING: For security purposes, it is highly advisable to check that
+        //          redirectURI provided by the client matches one registered with
+        //          the server.  For simplicity, this example does not.  You have
+        //          been warned.
+        return done(null, client, redirectURI);
+      })
+      .catch(err => done(err));
   }), (req, res, next) => {
     // Render the decision dialog if the client isn't a trusted client
     // TODO:  Make a mechanism so that if this isn't a trusted client, the user can record that
     // they have consented but also make a mechanism so that if the user revokes access to any of
     // the clients then they will have to re-consent.
     db.clients.findByClientId(req.query.client_id)
-    .then((client) => {
-      if (client != null && client.trustedClient && client.trustedClient === true) {
-        // This is how we short call the decision like the dialog below does
-        server.decision({ loadTransaction: false }, (serverReq, callback) => {
-          callback(null, { allow: true });
-        })(req, res, next);
-      } else {
-        res.render('dialog', { transactionID: req.oauth2.transactionID, user: req.user, client: req.oauth2.client });
-      }
-    })
-    .catch(() =>
-      res.render('dialog', { transactionID: req.oauth2.transactionID, user: req.user, client: req.oauth2.client }));
+      .then((client) => {
+        if (client != null && client.trustedClient && client.trustedClient === true) {
+          // This is how we short call the decision like the dialog below does
+          server.decision({ loadTransaction: false }, (serverReq, callback) => {
+            callback(null, { allow: true });
+          })(req, res, next);
+        } else {
+          res.render('dialog', { transactionID: req.oauth2.transactionID, user: req.user, client: req.oauth2.client });
+        }
+      })
+      .catch(() =>
+        res.render('dialog', { transactionID: req.oauth2.transactionID, user: req.user, client: req.oauth2.client }));
   }];
 
 /**
@@ -231,7 +231,7 @@ server.serializeClient((client, done) => done(null, client.id));
 
 server.deserializeClient((id, done) => {
   db.clients.find(id)
-  .then(client => done(null, client))
-  .catch(err => done(err));
+    .then(client => done(null, client))
+    .catch(err => done(err));
 });
 
