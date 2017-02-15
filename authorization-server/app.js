@@ -17,6 +17,7 @@ const token = require('./token');
 const user = require('./user');
 const mongoose = require('mongoose');
 const connectMongo = require('connect-mongo');
+// const cors = require('cors');
 
 // console.log('Using MemoryStore for the data store');
 // console.log('Using MemoryStore for the Session');
@@ -32,6 +33,16 @@ const MongoStore = connectMongo(session);
 
 // Express configuration
 const app = express();
+
+// app.use(cors({
+//   "origin": "http://localhost:4000", //浏览器端的credentials=include时，此处不能为*，必须是一个具体的域名
+//   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   "preflightContinue": false,
+//   "optionsSuccessStatus": 204,
+//   credentials: true  //浏览器端的credentials=include时，此值必须设置为true
+// }));
+
+
 app.set('view engine', 'ejs');
 app.use(cookieParser());
 

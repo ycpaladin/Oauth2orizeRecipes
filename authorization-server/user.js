@@ -34,7 +34,6 @@ exports.info = [
 
 
 exports.register = (req, res) => {
-  console.log('register....');
   // User
   const { username, password, name } = req.body;
   const user = new User({

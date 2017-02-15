@@ -43,7 +43,7 @@ const Client = require('../models/Client');
  * @param   {String}   id   - The unique id of the client to find
  * @returns {Promise}  resolved promise with the client if found, otherwise undefined
  */
-exports.find = id => Client.findOne({ id }).exec().then((client) => {
+exports.find = id => Client.findById(id).exec().then((client) => {
   console.log(client);
   return client;
 });

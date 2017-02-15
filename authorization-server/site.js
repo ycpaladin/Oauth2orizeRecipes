@@ -1,6 +1,6 @@
 'use strict';
 
-const login    = require('connect-ensure-login');
+const login = require('connect-ensure-login');
 const passport = require('passport');
 
 /**
@@ -57,3 +57,5 @@ exports.account = [
     res.render('account', { user: req.user });
   },
 ];
+
+

@@ -29,7 +29,10 @@ const RefreshToken = require('../models/RefreshToken');
 
 exports.find = (token) => {
   const id = jwt.decode(token).jti;
-  return RefreshToken.findOne({ id }).exec();
+  return RefreshToken.findOne({ id }).exec().then(doc => {
+    if (!doc) throw new Error('RefreshToken not exists ');
+    return doc;
+  }).catch(() => Promise.resolve(undefined));
 };
 
 /**
@@ -64,7 +67,7 @@ exports.save = (token, userID, clientID, scope) => {
  */
 exports.delete = (token) => {
   const id = jwt.decode(token).jti;
-  return RefreshToken.findOneAndRemove({ id }).exec().catch(error => Promise.reject(error));
+  return RefreshToken.findOneAndRemove({ id }).exec().catch(error => Promise.resolve(null));
 };
 // exports.delete = (token) => {
 //   try {
